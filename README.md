@@ -44,7 +44,7 @@ Log attendance records with date and member name.
 
 ## Data Storage
 
-All data is stored in browser's localStorage:
+All data is stored in App's localStorage:
 - `members` - Church members
 - `prayers` - Prayer requests
 - `sermons` - Sermon records
