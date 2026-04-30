@@ -44,7 +44,7 @@ Log attendance records with date and member name.
 
 ## Data Storage
 create local database in the app
-All data is stored in App's local database storage:
+All data is stored in App's local database:
 - `members` - Church members
 - `prayers` - Prayer requests
 - `sermons` - Sermon records
