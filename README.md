@@ -43,8 +43,8 @@ Add and track sermon details including title, preacher, date, and summary.
 Log attendance records with date and member name.
 
 ## Data Storage
-
-All data is stored in App's localStorage:
+create local database in the app
+All data is stored in App's local database storage:
 - `members` - Church members
 - `prayers` - Prayer requests
 - `sermons` - Sermon records
