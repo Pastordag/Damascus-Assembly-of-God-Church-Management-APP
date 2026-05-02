@@ -1,4 +1,341 @@
 <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Damascus Assembly of God</title>
+
+<style>
+body{
+font-family:Arial,sans-serif;
+margin:0;
+padding:0;
+background:#f3f4f6;
+}
+
+header{
+background:#0f172a;
+color:white;
+padding:20px;
+text-align:center;
+}
+
+.container{
+padding:15px;
+max-width:1200px;
+margin:auto;
+}
+
+.tabs{
+display:flex;
+flex-wrap:wrap;
+gap:10px;
+margin-bottom:20px;
+}
+
+.tabs button{
+padding:12px;
+border:none;
+border-radius:8px;
+background:#2563eb;
+color:white;
+cursor:pointer;
+flex:1;
+min-width:120px;
+}
+
+.card{
+background:white;
+padding:15px;
+border-radius:10px;
+margin-bottom:15px;
+box-shadow:0 2px 6px rgba(0,0,0,.1);
+}
+
+input,textarea,select{
+width:100%;
+padding:12px;
+margin-top:5px;
+margin-bottom:15px;
+border:1px solid #ccc;
+border-radius:8px;
+box-sizing:border-box;
+}
+
+button.action{
+background:#16a34a;
+color:white;
+border:none;
+padding:12px 18px;
+border-radius:8px;
+cursor:pointer;
+}
+
+.delete{
+background:#dc2626;
+margin-top:10px;
+}
+
+.hidden{
+display:none;
+}
+
+.grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+gap:15px;
+}
+
+.stat{
+background:white;
+padding:20px;
+border-radius:10px;
+text-align:center;
+}
+
+@media(max-width:768px){
+.tabs button{
+font-size:14px;
+}
+}
+</style>
+</head>
+<body>
+
+<header>
+<h1>Damascus Assembly of God</h1>
+<p>Church Management Platform</p>
+</header>
+
+<div class="container">
+
+<div class="tabs">
+<button onclick="showTab('dashboard')">Dashboard</button>
+<button onclick="showTab('members')">Members</button>
+<button onclick="showTab('giving')">Giving</button>
+<button onclick="showTab('events')">Events</button>
+<button onclick="showTab('prayers')">Prayers</button>
+<button onclick="showTab('visitors')">Visitors</button>
+</div>
+
+<div id="dashboard" class="tab">
+<div class="grid">
+<div class="stat">
+<h2 id="memberCount">0</h2>
+<p>Members</p>
+</div>
+<div class="stat">
+<h2 id="givingTotal">$0</h2>
+<p>Total Giving</p>
+</div>
+<div class="stat">
+<h2 id="eventCount">0</h2>
+<p>Events</p>
+</div>
+<div class="stat">
+<h2 id="visitorCount">0</h2>
+<p>Visitors</p>
+</div>
+</div>
+</div>
+
+<div id="members" class="tab hidden">
+<div class="card">
+<h2>Add Member</h2>
+<input id="memberName" placeholder="Member Name">
+<input id="memberPhone" placeholder="Phone Number">
+<input id="memberEmail" placeholder="Email Address">
+<input type="file" id="memberPhoto">
+<button class="action" onclick="addMember()">Save Member</button>
+</div>
+<div id="memberList"></div>
+</div>
+
+<div id="giving" class="tab hidden">
+<div class="card">
+<h2>Online Giving Tracker</h2>
+<input id="giver" placeholder="Member Name">
+<input id="amount" type="number" placeholder="Amount">
+<select id="givingType">
+<option>Tithe</option>
+<option>Offering</option>
+<option>Missions</option>
+</select>
+<button class="action" onclick="addGiving()">Record Giving</button>
+</div>
+<div id="givingList"></div>
+</div>
+
+<div id="events" class="tab hidden">
+<div class="card">
+<h2>Event Calendar</h2>
+<input id="eventTitle" placeholder="Event Name">
+<input type="date" id="eventDate">
+<textarea id="eventDesc" placeholder="Event Description"></textarea>
+<button class="action" onclick="addEvent()">Add Event</button>
+</div>
+<div id="eventList"></div>
+</div>
+
+<div id="prayers" class="tab hidden">
+<div class="card">
+<h2>Prayer Request</h2>
+<input id="prayerTitle" placeholder="Prayer Title">
+<textarea id="prayerText"></textarea>
+<select id="prayerStatus">
+<option>Pending</option>
+<option>Approved</option>
+</select>
+<button class="action" onclick="addPrayer()">Save Prayer</button>
+</div>
+<div id="prayerList"></div>
+</div>
+
+<div id="visitors" class="tab hidden">
+<div class="card">
+<h2>Visitor Tracking</h2>
+<input id="visitorName" placeholder="Visitor Name">
+<input id="visitorPhone" placeholder="Phone">
+<textarea id="visitorNotes" placeholder="Notes"></textarea>
+<button class="action" onclick="addVisitor()">Save Visitor</button>
+</div>
+<div id="visitorList"></div>
+</div>
+
+</div>
+
+<script>
+const DB_NAME='churchDB';
+const DB_VERSION=1;
+let db;
+const stores=['members','giving','events','prayers','visitors'];
+
+function openDB(){
+return new Promise((resolve,reject)=>{
+const request=indexedDB.open(DB_NAME,DB_VERSION);
+
+request.onupgradeneeded=(e)=>{
+db=e.target.result;
+stores.forEach(store=>{
+if(!db.objectStoreNames.contains(store)){
+db.createObjectStore(store,{keyPath:'id',autoIncrement:true});
+}
+});
+};
+
+request.onsuccess=(e)=>{
+db=e.target.result;
+resolve();
+};
+
+request.onerror=()=>reject();
+});
+}
+
+function save(store,data){
+return new Promise((resolve)=>{
+const tx=db.transaction(store,'readwrite');
+tx.objectStore(store).add(data);
+tx.oncomplete=()=>resolve();
+});
+}
+
+function getAll(store){
+return new Promise((resolve)=>{
+const tx=db.transaction(store,'readonly');
+const req=tx.objectStore(store).getAll();
+req.onsuccess=()=>resolve(req.result);
+});
+}
+
+function remove(store,id){
+return new Promise((resolve)=>{
+const tx=db.transaction(store,'readwrite');
+tx.objectStore(store).delete(id);
+tx.oncomplete=()=>resolve();
+});
+}
+
+function showTab(id){
+document.querySelectorAll('.tab').forEach(t=>t.classList.add('hidden'));
+document.getElementById(id).classList.remove('hidden');
+}
+
+function toBase64(file){
+return new Promise((resolve,reject)=>{
+const r=new FileReader();
+r.onload=()=>resolve(r.result);
+r.onerror=reject;
+r.readAsDataURL(file);
+});
+}
+
+async function addMember(){
+let photo='';
+const file=document.getElementById('memberPhoto').files[0];
+if(file) photo=await toBase64(file);
+
+await save('members',{
+name:memberName.value,
+phone:memberPhone.value,
+email:memberEmail.value,
+photo
+});
+loadMembers();updateDashboard();
+}
+
+async function loadMembers(){
+const data=await getAll('members');
+memberList.innerHTML=data.map(m=>`
+<div class="card">
+${m.photo?`<img src="${m.photo}" width="80">`:''}
+<h3>${m.name}</h3>
+<p>${m.phone}</p>
+<p>${m.email}</p>
+</div>`).join('');
+}
+
+async function addGiving(){
+await save('giving',{
+giver:giver.value,
+amount:Number(amount.value),
+type:givingType.value,
+date:new Date().toLocaleDateString()
+});
+loadGiving();updateDashboard();
+}
+
+async function loadGiving(){
+const data=await getAll('giving');
+givingList.innerHTML=data.map(g=>`
+<div class="card">
+<h3>${g.giver}</h3>
+<p>$${g.amount}</p>
+</div>`).join('');
+}
+
+async function addEvent(){
+await save('events',{
+title:eventTitle.value,
+date:eventDate.value,
+desc:eventDesc.value
+});
+loadEvents();updateDashboard();
+}
+
+async function loadEvents(){
+const data=await getAll('events');
+eventList.innerHTML=data.map(e=>`
+<div class="card">
+<h3>${e.title}</h3>
+<p>${e.date}</p>
+</div>`).join('');
+}
+
+async function addPrayer(){
+await save('prayers',{
+title:prayerTitle.value,
+text:prayerText.value,
 status:prayerStatus.value
 });
 loadPrayers();
@@ -7,10 +344,9 @@ loadPrayers();
 async function loadPrayers(){
 const data=await getAll('prayers');
 prayerList.innerHTML=data.map(p=>`
-<div class='card'>
+<div class="card">
 <h3>${p.title}</h3>
-<p>${p.text}</p>
-<p>Status: ${p.status}</p>
+<p>${p.status}</p>
 </div>`).join('');
 }
 
@@ -20,60 +356,36 @@ name:visitorName.value,
 phone:visitorPhone.value,
 notes:visitorNotes.value
 });
-loadVisitors();
-updateDashboard();
+loadVisitors();updateDashboard();
 }
 
 async function loadVisitors(){
 const data=await getAll('visitors');
 visitorList.innerHTML=data.map(v=>`
-<div class='card'>
+<div class="card">
 <h3>${v.name}</h3>
 <p>${v.phone}</p>
-<p>${v.notes}</p>
 </div>`).join('');
 }
 
-async function deleteItem(store,id,reload){
-await remove(store,id);
-reload();
-updateDashboard();
-}
-
 async function updateDashboard(){
-const members=await getAll('members');
-const giving=await getAll('giving');
-const events=await getAll('events');
-const visitors=await getAll('visitors');
+const m=await getAll('members');
+const g=await getAll('giving');
+const e=await getAll('events');
+const v=await getAll('visitors');
 
-memberCount.innerText=members.length;
-eventCount.innerText=events.length;
-visitorCount.innerText=visitors.length;
-
-givingTotal.innerText='$'+giving.reduce((a,b)=>a+b.amount,0);
-}
-
-function toBase64(file){
-return new Promise((resolve,reject)=>{
-const reader=new FileReader();
-reader.readAsDataURL(file);
-reader.onload=()=>resolve(reader.result);
-reader.onerror=error=>reject(error);
-});
+memberCount.innerText=m.length;
+eventCount.innerText=e.length;
+visitorCount.innerText=v.length;
+givingTotal.innerText="$"+g.reduce((a,b)=>a+b.amount,0);
 }
 
 async function init(){
 await openDB();
-await loadMembers();
-await loadGiving();
-await loadEvents();
-await loadPrayers();
-await loadVisitors();
-await updateDashboard();
+loadMembers();loadGiving();loadEvents();loadPrayers();loadVisitors();
+updateDashboard();
 }
-
 init();
-
 </script>
 
 </body>
