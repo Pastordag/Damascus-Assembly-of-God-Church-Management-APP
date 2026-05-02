@@ -1,86 +1,66 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Damascus Assembly of God</title>
+    return new Promise((resolve, reject) => {
 
-    <link rel="manifest" href="manifest.json" />
-    <meta name="theme-color" content="#1a2236" />
+        const transaction = db.transaction(storeName, 'readwrite');
+        const store = transaction.objectStore(storeName);
 
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        const request = store.put(data);
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1a2236 0%, #2c3e50 100%);
-            min-height: 100vh;
-            color: #333;
-        }
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+    });
+}
 
-        header {
-            background: #111827;
-            color: white;
-            text-align: center;
-            padding: 2rem 1rem;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-        }
+/* =========================
+   EXAMPLE MEMBER EDITING
+========================= */
 
-        header h1 {
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
-        }
+async function editMember(id) {
 
-        .container {
-            max-width: 1200px;
-            margin: 2rem auto;
-            padding: 1rem;
-        }
+    const members = await getAllRecords('members');
+    const member = members.find(m => m.id === id);
 
-        .tabs {
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
-            margin-bottom: 2rem;
-            justify-content: center;
-        }
+    if (!member) return;
 
-        .tab-btn {
-            background: white;
-            color: #1a2236;
-            border: none;
-            padding: 0.85rem 1.5rem;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: 0.3s ease;
-        }
+    const newName = prompt('Update Member Name', member.name);
+    const newEmail = prompt('Update Member Email', member.email);
+    const newPhone = prompt('Update Member Phone', member.phone);
 
-        .tab-btn:hover {
-            transform: translateY(-2px);
-        }
+    if (!newName) return;
 
-        .tab-btn.active {
-            background: #2563eb;
-            color: white;
-        }
+    await updateRecord('members', {
+        id: member.id,
+        name: newName,
+        email: newEmail,
+        phone: newPhone,
+        createdAt: member.createdAt,
+        updatedAt: new Date().toISOString()
+    });
 
-        .tab-content {
-            display: none;
-            background: white;
-            padding: 2rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-        }
+    loadMembers();
+    updateDashboard();
+}
 
-        .tab-content.active {
-            display: block;
-            animation: fadeIn 0.3s ease;
-        }
+/* =========================
+   DATA PERSISTENCE NOTES
+========================= */
 
-        @keyframes fadeIn {
+// IndexedDB permanently stores data locally in the app.
+// Information remains available after:
+// - Closing the browser
+// - Refreshing the page
+// - Restarting the device
+// - Offline usage
+//
+// Records can now:
+// - Be added
+// - Be edited
+// - Be deleted
+// - Be maintained long-term
+// - Scale to thousands of records
+
+
+</script>
+
+</body>
 </html>
