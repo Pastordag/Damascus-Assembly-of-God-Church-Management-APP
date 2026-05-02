@@ -1,64 +1,78 @@
 <!DOCTYPE html>
-    return new Promise((resolve, reject) => {
-
-        const transaction = db.transaction(storeName, 'readwrite');
-        const store = transaction.objectStore(storeName);
-
-        const request = store.put(data);
-
-        request.onsuccess = () => resolve();
-        request.onerror = () => reject(request.error);
-    });
+status:prayerStatus.value
+});
+loadPrayers();
 }
 
-/* =========================
-   EXAMPLE MEMBER EDITING
-========================= */
-
-async function editMember(id) {
-
-    const members = await getAllRecords('members');
-    const member = members.find(m => m.id === id);
-
-    if (!member) return;
-
-    const newName = prompt('Update Member Name', member.name);
-    const newEmail = prompt('Update Member Email', member.email);
-    const newPhone = prompt('Update Member Phone', member.phone);
-
-    if (!newName) return;
-
-    await updateRecord('members', {
-        id: member.id,
-        name: newName,
-        email: newEmail,
-        phone: newPhone,
-        createdAt: member.createdAt,
-        updatedAt: new Date().toISOString()
-    });
-
-    loadMembers();
-    updateDashboard();
+async function loadPrayers(){
+const data=await getAll('prayers');
+prayerList.innerHTML=data.map(p=>`
+<div class='card'>
+<h3>${p.title}</h3>
+<p>${p.text}</p>
+<p>Status: ${p.status}</p>
+</div>`).join('');
 }
 
-/* =========================
-   DATA PERSISTENCE NOTES
-========================= */
+async function addVisitor(){
+await save('visitors',{
+name:visitorName.value,
+phone:visitorPhone.value,
+notes:visitorNotes.value
+});
+loadVisitors();
+updateDashboard();
+}
 
-// IndexedDB permanently stores data locally in the app.
-// Information remains available after:
-// - Closing the browser
-// - Refreshing the page
-// - Restarting the device
-// - Offline usage
-//
-// Records can now:
-// - Be added
-// - Be edited
-// - Be deleted
-// - Be maintained long-term
-// - Scale to thousands of records
+async function loadVisitors(){
+const data=await getAll('visitors');
+visitorList.innerHTML=data.map(v=>`
+<div class='card'>
+<h3>${v.name}</h3>
+<p>${v.phone}</p>
+<p>${v.notes}</p>
+</div>`).join('');
+}
 
+async function deleteItem(store,id,reload){
+await remove(store,id);
+reload();
+updateDashboard();
+}
+
+async function updateDashboard(){
+const members=await getAll('members');
+const giving=await getAll('giving');
+const events=await getAll('events');
+const visitors=await getAll('visitors');
+
+memberCount.innerText=members.length;
+eventCount.innerText=events.length;
+visitorCount.innerText=visitors.length;
+
+givingTotal.innerText='$'+giving.reduce((a,b)=>a+b.amount,0);
+}
+
+function toBase64(file){
+return new Promise((resolve,reject)=>{
+const reader=new FileReader();
+reader.readAsDataURL(file);
+reader.onload=()=>resolve(reader.result);
+reader.onerror=error=>reject(error);
+});
+}
+
+async function init(){
+await openDB();
+await loadMembers();
+await loadGiving();
+await loadEvents();
+await loadPrayers();
+await loadVisitors();
+await updateDashboard();
+}
+
+init();
 
 </script>
 
