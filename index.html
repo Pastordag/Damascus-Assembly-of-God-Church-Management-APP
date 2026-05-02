@@ -1,558 +1,778 @@
+# Damascus Assembly of God – Church Management System (IndexedDB Version)
+
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Damascus Assembly of God</title>
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#1a2236">
-    <link rel="apple-touch-icon" href="icon-192.png">
+
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#1a2236" />
+
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #1a2236 0%, #2c3e50 100%);
+            min-height: 100vh;
             color: #333;
-            line-height: 1.6;
         }
-        
+
         header {
-            background: #1a2236;
-            color: #fff;
-            padding: 1.5rem;
+            background: #111827;
+            color: white;
             text-align: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 2rem 1rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
         }
-        
+
         header h1 {
-            font-size: 1.8rem;
+            font-size: 2rem;
             margin-bottom: 0.5rem;
         }
-        
+
         .container {
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 2rem auto;
             padding: 1rem;
         }
-        
+
         .tabs {
             display: flex;
-            gap: 0.5rem;
-            margin-bottom: 2rem;
+            gap: 1rem;
             flex-wrap: wrap;
+            margin-bottom: 2rem;
             justify-content: center;
         }
-        
-        .tabs button {
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 4px;
-            background: #fff;
+
+        .tab-btn {
+            background: white;
             color: #1a2236;
+            border: none;
+            padding: 0.85rem 1.5rem;
+            border-radius: 8px;
             cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
+            font-weight: bold;
+            transition: 0.3s ease;
         }
-        
-        .tabs button.active {
-            background: #4a90e2;
-            color: #fff;
-        }
-        
-        .tabs button:hover {
+
+        .tab-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
-        
+
+        .tab-btn.active {
+            background: #2563eb;
+            color: white;
+        }
+
         .tab-content {
             display: none;
-            background: #fff;
+            background: white;
             padding: 2rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
         }
-        
+
         .tab-content.active {
             display: block;
             animation: fadeIn 0.3s ease;
         }
-        
+
         @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
-        
+
         .form-group {
             margin-bottom: 1.5rem;
         }
-        
+
         label {
             display: block;
             margin-bottom: 0.5rem;
             font-weight: 600;
-            color: #1a2236;
+            color: #111827;
         }
-        
-        input, textarea, select {
+
+        input,
+        textarea,
+        select {
             width: 100%;
-            padding: 0.75rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            padding: 0.85rem;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
             font-size: 1rem;
-            font-family: inherit;
         }
-        
+
         textarea {
+            min-height: 120px;
             resize: vertical;
-            min-height: 100px;
         }
-        
-        input:focus, textarea:focus, select:focus {
+
+        input:focus,
+        textarea:focus,
+        select:focus {
             outline: none;
-            border-color: #4a90e2;
-            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
         }
-        
-        button.submit-btn {
-            background: #4a90e2;
-            color: #fff;
-            padding: 0.75rem 2rem;
+
+        .submit-btn {
+            background: #2563eb;
+            color: white;
             border: none;
-            border-radius: 4px;
+            padding: 0.85rem 1.5rem;
+            border-radius: 8px;
             cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
+            font-weight: bold;
+            transition: 0.3s ease;
         }
-        
-        button.submit-btn:hover {
-            background: #357abd;
-            transform: translateY(-2px);
+
+        .submit-btn:hover {
+            background: #1d4ed8;
         }
-        
-        .list-item {
-            background: #f8f9fa;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            border-radius: 4px;
-            border-left: 4px solid #4a90e2;
-        }
-        
-        .list-item h3 {
-            color: #1a2236;
-            margin-bottom: 0.5rem;
-        }
-        
-        .list-item p {
-            color: #666;
-            font-size: 0.95rem;
-        }
-        
+
         .delete-btn {
-            background: #e74c3c;
-            color: #fff;
-            padding: 0.5rem 1rem;
+            background: #dc2626;
+            color: white;
             border: none;
-            border-radius: 4px;
+            padding: 0.55rem 1rem;
+            border-radius: 6px;
             cursor: pointer;
-            font-size: 0.9rem;
-            margin-top: 0.5rem;
+            margin-top: 1rem;
         }
-        
+
         .delete-btn:hover {
-            background: #c0392b;
+            background: #b91c1c;
         }
-        
-        .empty-state {
-            text-align: center;
-            color: #999;
-            padding: 2rem;
+
+        .list-item {
+            background: #f9fafb;
+            border-left: 5px solid #2563eb;
+            padding: 1.25rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
         }
-        
+
+        .list-item h3 {
+            margin-bottom: 0.5rem;
+            color: #111827;
+        }
+
         .stats {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
             gap: 1rem;
-            margin-bottom: 2rem;
         }
-        
+
         .stat-card {
-            background: #f8f9fa;
-            padding: 1.5rem;
-            border-radius: 8px;
+            background: #f9fafb;
+            border-radius: 12px;
+            padding: 2rem;
             text-align: center;
-            border: 1px solid #e0e0e0;
+            border: 1px solid #e5e7eb;
         }
-        
+
         .stat-card h3 {
-            color: #4a90e2;
-            font-size: 1.5rem;
-            margin: 0.5rem 0;
+            font-size: 2rem;
+            color: #2563eb;
+            margin-bottom: 0.5rem;
         }
-        
-        .stat-card p {
-            color: #666;
-            font-size: 0.9rem;
+
+        .empty-state {
+            text-align: center;
+            color: #6b7280;
+            padding: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 0.5rem;
+            }
+
+            .tab-content {
+                padding: 1.25rem;
+            }
         }
     </style>
 </head>
 <body>
-    <header>
-        <h1>Damascus Assembly of God</h1>
-        <p>Church Management System</p>
-    </header>
-    
-    <div class="container">
-        <div class="tabs">
-            <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
-            <button class="tab-btn" data-tab="members">Members</button>
-            <button class="tab-btn" data-tab="prayers">Prayer Requests</button>
-            <button class="tab-btn" data-tab="sermons">Sermons</button>
-            <button class="tab-btn" data-tab="attendance">Attendance</button>
-        </div>
-        
-        <!-- Dashboard Tab -->
-        <div id="dashboard" class="tab-content active">
-            <h2>Dashboard</h2>
-            <div class="stats">
-                <div class="stat-card">
-                    <h3 id="memberCount">0</h3>
-                    <p>Total Members</p>
-                </div>
-                <div class="stat-card">
-                    <h3 id="prayerCount">0</h3>
-                    <p>Prayer Requests</p>
-                </div>
-                <div class="stat-card">
-                    <h3 id="sermonCount">0</h3>
-                    <p>Sermons</p>
-                </div>
-                <div class="stat-card">
-                    <h3 id="attendanceCount">0</h3>
-                    <p>Attendance Records</p>
-                </div>
+
+<header>
+    <h1>Damascus Assembly of God</h1>
+    <p>Church Management System with IndexedDB Storage</p>
+</header>
+
+<div class="container">
+
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
+        <button class="tab-btn" data-tab="members">Members</button>
+        <button class="tab-btn" data-tab="prayers">Prayer Requests</button>
+        <button class="tab-btn" data-tab="sermons">Sermons</button>
+        <button class="tab-btn" data-tab="attendance">Attendance</button>
+    </div>
+
+    <!-- Dashboard -->
+    <div class="tab-content active" id="dashboard">
+        <h2>Dashboard</h2>
+
+        <div class="stats">
+            <div class="stat-card">
+                <h3 id="memberCount">0</h3>
+                <p>Total Members</p>
             </div>
-        </div>
-        
-        <!-- Members Tab -->
-        <div id="members" class="tab-content">
-            <h2>Members</h2>
-            <div class="form-group">
-                <label for="memberName">Member Name:</label>
-                <input type="text" id="memberName" placeholder="Enter member name">
+
+            <div class="stat-card">
+                <h3 id="prayerCount">0</h3>
+                <p>Prayer Requests</p>
             </div>
-            <div class="form-group">
-                <label for="memberEmail">Email:</label>
-                <input type="email" id="memberEmail" placeholder="Enter email">
+
+            <div class="stat-card">
+                <h3 id="sermonCount">0</h3>
+                <p>Sermons</p>
             </div>
-            <div class="form-group">
-                <label for="memberPhone">Phone:</label>
-                <input type="tel" id="memberPhone" placeholder="Enter phone number">
+
+            <div class="stat-card">
+                <h3 id="attendanceCount">0</h3>
+                <p>Attendance Records</p>
             </div>
-            <button class="submit-btn" onclick="addMember()">Add Member</button>
-            <div id="membersList" style="margin-top: 2rem;"></div>
-        </div>
-        
-        <!-- Prayer Requests Tab -->
-        <div id="prayers" class="tab-content">
-            <h2>Prayer Requests</h2>
-            <div class="form-group">
-                <label for="prayerTitle">Prayer Title:</label>
-                <input type="text" id="prayerTitle" placeholder="Enter prayer request title">
-            </div>
-            <div class="form-group">
-                <label for="prayerDescription">Description:</label>
-                <textarea id="prayerDescription" placeholder="Enter prayer request details"></textarea>
-            </div>
-            <div class="form-group">
-                <label for="prayerName">Requested By:</label>
-                <input type="text" id="prayerName" placeholder="Enter your name">
-            </div>
-            <button class="submit-btn" onclick="addPrayer()">Submit Prayer Request</button>
-            <div id="prayersList" style="margin-top: 2rem;"></div>
-        </div>
-        
-        <!-- Sermons Tab -->
-        <div id="sermons" class="tab-content">
-            <h2>Sermons</h2>
-            <div class="form-group">
-                <label for="sermonTitle">Sermon Title:</label>
-                <input type="text" id="sermonTitle" placeholder="Enter sermon title">
-            </div>
-            <div class="form-group">
-                <label for="sermonPreacher">Preacher:</label>
-                <input type="text" id="sermonPreacher" placeholder="Enter preacher name">
-            </div>
-            <div class="form-group">
-                <label for="sermonDate">Date:</label>
-                <input type="date" id="sermonDate">
-            </div>
-            <div class="form-group">
-                <label for="sermonDescription">Summary:</label>
-                <textarea id="sermonDescription" placeholder="Enter sermon summary"></textarea>
-            </div>
-            <button class="submit-btn" onclick="addSermon()">Add Sermon</button>
-            <div id="sermonsList" style="margin-top: 2rem;"></div>
-        </div>
-        
-        <!-- Attendance Tab -->
-        <div id="attendance" class="tab-content">
-            <h2>Attendance Log</h2>
-            <div class="form-group">
-                <label for="attDate">Date:</label>
-                <input type="date" id="attDate">
-            </div>
-            <div class="form-group">
-                <label for="attMemberName">Member Name:</label>
-                <input type="text" id="attMemberName" placeholder="Enter member name">
-            </div>
-            <button class="submit-btn" onclick="addAttendance()">Log Attendance</button>
-            <div id="attendanceList" style="margin-top: 2rem;"></div>
         </div>
     </div>
-    
-    <script>
-        let members = JSON.parse(localStorage.getItem('members') || '[]');
-        let prayers = JSON.parse(localStorage.getItem('prayers') || '[]');
-        let sermons = JSON.parse(localStorage.getItem('sermons') || '[]');
-        let attLog = JSON.parse(localStorage.getItem('attLog') || '[]');
-        
-        // Save to localStorage
-        function save() {
-            localStorage.setItem('members', JSON.stringify(members));
-            localStorage.setItem('prayers', JSON.stringify(prayers));
-            localStorage.setItem('sermons', JSON.stringify(sermons));
-            localStorage.setItem('attLog', JSON.stringify(attLog));
-        }
-        
-        // Tab switching
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                this.classList.add('active');
-                document.getElementById(this.dataset.tab).classList.add('active');
-                updateDashboard();
-            });
-        });
-        
-        // Members
-        function addMember() {
-            const name = document.getElementById('memberName').value.trim();
-            const email = document.getElementById('memberEmail').value.trim();
-            const phone = document.getElementById('memberPhone').value.trim();
-            
-            if (!name) {
-                alert('Please enter a member name');
-                return;
+
+    <!-- Members -->
+    <div class="tab-content" id="members">
+        <h2>Members</h2>
+
+        <div class="form-group">
+            <label>Member Name</label>
+            <input type="text" id="memberName" placeholder="Enter member name" />
+        </div>
+
+        <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="memberEmail" placeholder="Enter email" />
+        </div>
+
+        <div class="form-group">
+            <label>Phone</label>
+            <input type="text" id="memberPhone" placeholder="Enter phone number" />
+        </div>
+
+        <button class="submit-btn" onclick="addMember()">Add Member</button>
+
+        <div id="membersList" style="margin-top:2rem"></div>
+    </div>
+
+    <!-- Prayer Requests -->
+    <div class="tab-content" id="prayers">
+        <h2>Prayer Requests</h2>
+
+        <div class="form-group">
+            <label>Prayer Title</label>
+            <input type="text" id="prayerTitle" placeholder="Prayer title" />
+        </div>
+
+        <div class="form-group">
+            <label>Description</label>
+            <textarea id="prayerDescription"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label>Requested By</label>
+            <input type="text" id="prayerName" placeholder="Name" />
+        </div>
+
+        <button class="submit-btn" onclick="addPrayer()">Submit Prayer Request</button>
+
+        <div id="prayersList" style="margin-top:2rem"></div>
+    </div>
+
+    <!-- Sermons -->
+    <div class="tab-content" id="sermons">
+        <h2>Sermons</h2>
+
+        <div class="form-group">
+            <label>Sermon Title</label>
+            <input type="text" id="sermonTitle" />
+        </div>
+
+        <div class="form-group">
+            <label>Preacher</label>
+            <input type="text" id="sermonPreacher" />
+        </div>
+
+        <div class="form-group">
+            <label>Date</label>
+            <input type="date" id="sermonDate" />
+        </div>
+
+        <div class="form-group">
+            <label>Summary</label>
+            <textarea id="sermonDescription"></textarea>
+        </div>
+
+        <button class="submit-btn" onclick="addSermon()">Add Sermon</button>
+
+        <div id="sermonsList" style="margin-top:2rem"></div>
+    </div>
+
+    <!-- Attendance -->
+    <div class="tab-content" id="attendance">
+        <h2>Attendance</h2>
+
+        <div class="form-group">
+            <label>Date</label>
+            <input type="date" id="attDate" />
+        </div>
+
+        <div class="form-group">
+            <label>Member Name</label>
+            <input type="text" id="attMemberName" />
+        </div>
+
+        <button class="submit-btn" onclick="addAttendance()">Log Attendance</button>
+
+        <div id="attendanceList" style="margin-top:2rem"></div>
+    </div>
+
+</div>
+
+<script>
+
+/* =========================
+   INDEXED DB DATABASE
+========================= */
+
+const DB_NAME = 'DamascusChurchDB';
+const DB_VERSION = 1;
+
+let db;
+
+function openDatabase() {
+    return new Promise((resolve, reject) => {
+
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+        request.onerror = () => reject(request.error);
+
+        request.onsuccess = () => {
+            db = request.result;
+            resolve(db);
+        };
+
+        request.onupgradeneeded = (event) => {
+            const database = event.target.result;
+
+            if (!database.objectStoreNames.contains('members')) {
+                database.createObjectStore('members', {
+                    keyPath: 'id',
+                    autoIncrement: true
+                });
             }
-            
-            members.push({ id: Date.now(), name, email, phone });
-            save();
-            displayMembers();
-            document.getElementById('memberName').value = '';
-            document.getElementById('memberEmail').value = '';
-            document.getElementById('memberPhone').value = '';
-            updateDashboard();
-        }
-        
-        function displayMembers() {
-            const list = document.getElementById('membersList');
-            if (members.length === 0) {
-                list.innerHTML = '<div class="empty-state">No members yet</div>';
-                return;
+
+            if (!database.objectStoreNames.contains('prayers')) {
+                database.createObjectStore('prayers', {
+                    keyPath: 'id',
+                    autoIncrement: true
+                });
             }
-            list.innerHTML = members.map(m => `
-                <div class="list-item">
-                    <h3>${m.name}</h3>
-                    <p><strong>Email:</strong> ${m.email || 'N/A'}</p>
-                    <p><strong>Phone:</strong> ${m.phone || 'N/A'}</p>
-                    <button class="delete-btn" onclick="deleteMember(${m.id})">Delete</button>
-                </div>
-            `).join('');
-        }
-        
-        function deleteMember(id) {
-            members = members.filter(m => m.id !== id);
-            save();
-            displayMembers();
-            updateDashboard();
-        }
-        
-        // Prayer Requests
-        function addPrayer() {
-            const title = document.getElementById('prayerTitle').value.trim();
-            const description = document.getElementById('prayerDescription').value.trim();
-            const name = document.getElementById('prayerName').value.trim();
-            
-            if (!title || !description || !name) {
-                alert('Please fill all prayer request fields');
-                return;
+
+            if (!database.objectStoreNames.contains('sermons')) {
+                database.createObjectStore('sermons', {
+                    keyPath: 'id',
+                    autoIncrement: true
+                });
             }
-            
-            prayers.push({
-                id: Date.now(),
-                title,
-                description,
-                name,
-                date: new Date().toLocaleDateString()
-            });
-            save();
-            displayPrayers();
-            document.getElementById('prayerTitle').value = '';
-            document.getElementById('prayerDescription').value = '';
-            document.getElementById('prayerName').value = '';
-            updateDashboard();
-        }
-        
-        function displayPrayers() {
-            const list = document.getElementById('prayersList');
-            if (prayers.length === 0) {
-                list.innerHTML = '<div class="empty-state">No prayer requests yet</div>';
-                return;
+
+            if (!database.objectStoreNames.contains('attendance')) {
+                database.createObjectStore('attendance', {
+                    keyPath: 'id',
+                    autoIncrement: true
+                });
             }
-            list.innerHTML = prayers.map(p => `
-                <div class="list-item">
-                    <h3>${p.title}</h3>
-                    <p><strong>From:</strong> ${p.name}</p>
-                    <p>${p.description}</p>
-                    <p><small>Submitted: ${p.date}</small></p>
-                    <button class="delete-btn" onclick="deletePrayer(${p.id})">Delete</button>
-                </div>
-            `).join('');
-        }
-        
-        function deletePrayer(id) {
-            prayers = prayers.filter(p => p.id !== id);
-            save();
-            displayPrayers();
-            updateDashboard();
-        }
-        
-        // Sermons
-        function addSermon() {
-            const title = document.getElementById('sermonTitle').value.trim();
-            const preacher = document.getElementById('sermonPreacher').value.trim();
-            const date = document.getElementById('sermonDate').value;
-            const description = document.getElementById('sermonDescription').value.trim();
-            
-            if (!title || !preacher || !date) {
-                alert('Please fill all sermon fields');
-                return;
-            }
-            
-            sermons.push({
-                id: Date.now(),
-                title,
-                preacher,
-                date,
-                description
-            });
-            save();
-            displaySermons();
-            document.getElementById('sermonTitle').value = '';
-            document.getElementById('sermonPreacher').value = '';
-            document.getElementById('sermonDate').value = '';
-            document.getElementById('sermonDescription').value = '';
-            updateDashboard();
-        }
-        
-        function displaySermons() {
-            const list = document.getElementById('sermonsList');
-            if (sermons.length === 0) {
-                list.innerHTML = '<div class="empty-state">No sermons yet</div>';
-                return;
-            }
-            list.innerHTML = sermons.map(s => `
-                <div class="list-item">
-                    <h3>${s.title}</h3>
-                    <p><strong>Preacher:</strong> ${s.preacher}</p>
-                    <p><strong>Date:</strong> ${new Date(s.date).toLocaleDateString()}</p>
-                    <p>${s.description}</p>
-                    <button class="delete-btn" onclick="deleteSermon(${s.id})">Delete</button>
-                </div>
-            `).join('');
-        }
-        
-        function deleteSermon(id) {
-            sermons = sermons.filter(s => s.id !== id);
-            save();
-            displaySermons();
-            updateDashboard();
-        }
-        
-        // Attendance
-        function addAttendance() {
-            const date = document.getElementById('attDate').value;
-            const memberName = document.getElementById('attMemberName').value.trim();
-            
-            if (!date || !memberName) {
-                alert('Please fill all attendance fields');
-                return;
-            }
-            
-            attLog.push({
-                id: Date.now(),
-                date,
-                member: memberName
-            });
-            save();
-            displayAttendance();
-            document.getElementById('attDate').value = '';
-            document.getElementById('attMemberName').value = '';
-            updateDashboard();
-        }
-        
-        function displayAttendance() {
-            const list = document.getElementById('attendanceList');
-            if (attLog.length === 0) {
-                list.innerHTML = '<div class="empty-state">No attendance records yet</div>';
-                return;
-            }
-            list.innerHTML = attLog.map(a => `
-                <div class="list-item">
-                    <h3>${a.member}</h3>
-                    <p><strong>Date:</strong> ${new Date(a.date).toLocaleDateString()}</p>
-                    <button class="delete-btn" onclick="deleteAttendance(${a.id})">Delete</button>
-                </div>
-            `).join('');
-        }
-        
-        function deleteAttendance(id) {
-            attLog = attLog.filter(a => a.id !== id);
-            save();
-            displayAttendance();
-            updateDashboard();
-        }
-        
-        // Dashboard
-        function updateDashboard() {
-            document.getElementById('memberCount').textContent = members.length;
-            document.getElementById('prayerCount').textContent = prayers.length;
-            document.getElementById('sermonCount').textContent = sermons.length;
-            document.getElementById('attendanceCount').textContent = attLog.length;
-        }
-        
-        // Initialize
-        function init() {
-            displayMembers();
-            displayPrayers();
-            displaySermons();
-            displayAttendance();
-            updateDashboard();
-        }
-        
-        // Service Worker
-        if ("serviceWorker" in navigator) {
-            navigator.serviceWorker.register("sw.js");
-        }
-        
-        // Initialize on load
-        window.addEventListener('load', init);
-    </script>
+        };
+    });
+}
+
+function addRecord(storeName, data) {
+    return new Promise((resolve, reject) => {
+
+        const transaction = db.transaction(storeName, 'readwrite');
+        const store = transaction.objectStore(storeName);
+
+        const request = store.add(data);
+
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+    });
+}
+
+function getAllRecords(storeName) {
+    return new Promise((resolve, reject) => {
+
+        const transaction = db.transaction(storeName, 'readonly');
+        const store = transaction.objectStore(storeName);
+
+        const request = store.getAll();
+
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+function deleteRecord(storeName, id) {
+    return new Promise((resolve, reject) => {
+
+        const transaction = db.transaction(storeName, 'readwrite');
+        const store = transaction.objectStore(storeName);
+
+        const request = store.delete(id);
+
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+    });
+}
+
+/* =========================
+   TAB SYSTEM
+========================= */
+
+const tabButtons = document.querySelectorAll('.tab-btn');
+const tabContents = document.querySelectorAll('.tab-content');
+
+tabButtons.forEach(button => {
+
+    button.addEventListener('click', () => {
+
+        tabButtons.forEach(btn => btn.classList.remove('active'));
+        tabContents.forEach(tab => tab.classList.remove('active'));
+
+        button.classList.add('active');
+
+        document
+            .getElementById(button.dataset.tab)
+            .classList.add('active');
+    });
+});
+
+/* =========================
+   MEMBERS
+========================= */
+
+async function addMember() {
+
+    const name = document.getElementById('memberName').value.trim();
+    const email = document.getElementById('memberEmail').value.trim();
+    const phone = document.getElementById('memberPhone').value.trim();
+
+    if (!name) {
+        alert('Please enter a member name');
+        return;
+    }
+
+    await addRecord('members', {
+        name,
+        email,
+        phone,
+        createdAt: new Date().toISOString()
+    });
+
+    document.getElementById('memberName').value = '';
+    document.getElementById('memberEmail').value = '';
+    document.getElementById('memberPhone').value = '';
+
+    loadMembers();
+    updateDashboard();
+}
+
+async function loadMembers() {
+
+    const members = await getAllRecords('members');
+
+    const list = document.getElementById('membersList');
+
+    if (members.length === 0) {
+        list.innerHTML = '<div class="empty-state">No members added yet</div>';
+        return;
+    }
+
+    list.innerHTML = members.map(member => `
+        <div class="list-item">
+            <h3>${member.name}</h3>
+            <p><strong>Email:</strong> ${member.email || 'N/A'}</p>
+            <p><strong>Phone:</strong> ${member.phone || 'N/A'}</p>
+
+            <button class="delete-btn"
+                onclick="removeMember(${member.id})">
+                Delete
+            </button>
+        </div>
+    `).join('');
+}
+
+async function removeMember(id) {
+    await deleteRecord('members', id);
+    loadMembers();
+    updateDashboard();
+}
+
+/* =========================
+   PRAYERS
+========================= */
+
+async function addPrayer() {
+
+    const title = document.getElementById('prayerTitle').value.trim();
+    const description = document.getElementById('prayerDescription').value.trim();
+    const name = document.getElementById('prayerName').value.trim();
+
+    if (!title || !description || !name) {
+        alert('Please complete all prayer request fields');
+        return;
+    }
+
+    await addRecord('prayers', {
+        title,
+        description,
+        name,
+        date: new Date().toLocaleDateString()
+    });
+
+    document.getElementById('prayerTitle').value = '';
+    document.getElementById('prayerDescription').value = '';
+    document.getElementById('prayerName').value = '';
+
+    loadPrayers();
+    updateDashboard();
+}
+
+async function loadPrayers() {
+
+    const prayers = await getAllRecords('prayers');
+
+    const list = document.getElementById('prayersList');
+
+    if (prayers.length === 0) {
+        list.innerHTML = '<div class="empty-state">No prayer requests yet</div>';
+        return;
+    }
+
+    list.innerHTML = prayers.map(prayer => `
+        <div class="list-item">
+            <h3>${prayer.title}</h3>
+            <p><strong>Requested By:</strong> ${prayer.name}</p>
+            <p>${prayer.description}</p>
+            <p><small>${prayer.date}</small></p>
+
+            <button class="delete-btn"
+                onclick="removePrayer(${prayer.id})">
+                Delete
+            </button>
+        </div>
+    `).join('');
+}
+
+async function removePrayer(id) {
+    await deleteRecord('prayers', id);
+    loadPrayers();
+    updateDashboard();
+}
+
+/* =========================
+   SERMONS
+========================= */
+
+async function addSermon() {
+
+    const title = document.getElementById('sermonTitle').value.trim();
+    const preacher = document.getElementById('sermonPreacher').value.trim();
+    const date = document.getElementById('sermonDate').value;
+    const description = document.getElementById('sermonDescription').value.trim();
+
+    if (!title || !preacher || !date) {
+        alert('Please complete all sermon fields');
+        return;
+    }
+
+    await addRecord('sermons', {
+        title,
+        preacher,
+        date,
+        description
+    });
+
+    document.getElementById('sermonTitle').value = '';
+    document.getElementById('sermonPreacher').value = '';
+    document.getElementById('sermonDate').value = '';
+    document.getElementById('sermonDescription').value = '';
+
+    loadSermons();
+    updateDashboard();
+}
+
+async function loadSermons() {
+
+    const sermons = await getAllRecords('sermons');
+
+    const list = document.getElementById('sermonsList');
+
+    if (sermons.length === 0) {
+        list.innerHTML = '<div class="empty-state">No sermons added yet</div>';
+        return;
+    }
+
+    list.innerHTML = sermons.map(sermon => `
+        <div class="list-item">
+            <h3>${sermon.title}</h3>
+            <p><strong>Preacher:</strong> ${sermon.preacher}</p>
+            <p><strong>Date:</strong> ${new Date(sermon.date).toLocaleDateString()}</p>
+            <p>${sermon.description}</p>
+
+            <button class="delete-btn"
+                onclick="removeSermon(${sermon.id})">
+                Delete
+            </button>
+        </div>
+    `).join('');
+}
+
+async function removeSermon(id) {
+    await deleteRecord('sermons', id);
+    loadSermons();
+    updateDashboard();
+}
+
+/* =========================
+   ATTENDANCE
+========================= */
+
+async function addAttendance() {
+
+    const date = document.getElementById('attDate').value;
+    const member = document.getElementById('attMemberName').value.trim();
+
+    if (!date || !member) {
+        alert('Please complete all attendance fields');
+        return;
+    }
+
+    await addRecord('attendance', {
+        date,
+        member
+    });
+
+    document.getElementById('attDate').value = '';
+    document.getElementById('attMemberName').value = '';
+
+    loadAttendance();
+    updateDashboard();
+}
+
+async function loadAttendance() {
+
+    const records = await getAllRecords('attendance');
+
+    const list = document.getElementById('attendanceList');
+
+    if (records.length === 0) {
+        list.innerHTML = '<div class="empty-state">No attendance records yet</div>';
+        return;
+    }
+
+    list.innerHTML = records.map(record => `
+        <div class="list-item">
+            <h3>${record.member}</h3>
+            <p><strong>Date:</strong> ${new Date(record.date).toLocaleDateString()}</p>
+
+            <button class="delete-btn"
+                onclick="removeAttendance(${record.id})">
+                Delete
+            </button>
+        </div>
+    `).join('');
+}
+
+async function removeAttendance(id) {
+    await deleteRecord('attendance', id);
+    loadAttendance();
+    updateDashboard();
+}
+
+/* =========================
+   DASHBOARD
+========================= */
+
+async function updateDashboard() {
+
+    const members = await getAllRecords('members');
+    const prayers = await getAllRecords('prayers');
+    const sermons = await getAllRecords('sermons');
+    const attendance = await getAllRecords('attendance');
+
+    document.getElementById('memberCount').textContent = members.length;
+    document.getElementById('prayerCount').textContent = prayers.length;
+    document.getElementById('sermonCount').textContent = sermons.length;
+    document.getElementById('attendanceCount').textContent = attendance.length;
+}
+
+/* =========================
+   INITIALIZE APP
+========================= */
+
+async function initializeApp() {
+
+    try {
+
+        await openDatabase();
+
+        await loadMembers();
+        await loadPrayers();
+        await loadSermons();
+        await loadAttendance();
+
+        await updateDashboard();
+
+        console.log('Church database initialized successfully');
+
+    } catch (error) {
+
+        console.error('Database error:', error);
+        alert('Error initializing database');
+    }
+}
+
+/* =========================
+   SERVICE WORKER
+========================= */
+
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js')
+        .then(() => console.log('Service Worker Registered'))
+        .catch(error => console.error(error));
+}
+
+window.addEventListener('load', initializeApp);
+
+</script>
+
 </body>
 </html>
+```
+
+---
+
+
